@@ -1,0 +1,122 @@
+---
+- name: Raspberry initial playbook
+  hosts: raspberry
+  vars: 
+    ansible_port: 22
+    ansible_user: pi
+    ansible_ssh_private_key_file: /Users/davidh/.ssh/raspberrypi.local
+    ansible_python_interpreter: auto_silent
+    control_machine_public_cert: "{{ lookup('file', '/Users/davidh/.ssh/raspberrypi.local.pub') }}"
+  tasks:
+    - name: Run the equivalent of "apt-get update" as a separate step
+      become: yes
+      apt:
+        update_cache: yes
+    - name: Update all packages to their latest version
+      become: yes
+      apt:
+        name: "*"
+        state: latest
+    - name: Install git and pip
+      become: yes
+      ansible.builtin.apt:
+        pkg:
+          - git
+          - pip
+    - name: Create new user <davidh>
+      become: yes
+      ansible.builtin.user:
+        append: yes
+        comment: "Created with ansible"
+        groups: "sudo"
+        name: "{{ new_user }}"
+        password: "{{new_user_pass}}"
+    - name: User with sudo passwordless
+      become: yes
+      ansible.builtin.lineinfile:
+        path: "/etc/sudoers"
+        line: "{{ new_user }}  ALL=(ALL:ALL) NOPASSWD:ALL"
+        state: present
+    - name: Allow new user to use ssh
+      become: yes
+      ansible.builtin.lineinfile:
+        path: "/etc/ssh/sshd_config"
+        line: "AllowUsers {{ new_user }}"
+        state: present
+    - name: Add control machine public key to authorized_key
+      become: yes
+      remote_user: "{{ new_user }}"
+      ansible.builtin.lineinfile: 
+        path: "/home/{{new_user}}/.ssh/authorized_keys"
+        line: "{{control_machine_public_cert}}"
+        create: yes
+        state: present
+        group: "{{ new_user }}"
+        owner: "{{ new_user }}"
+        mode: "0600"
+    - name: Disable password access via ssh
+      become: yes
+      ansible.builtin.lineinfile:
+        path: "/etc/ssh/sshd_config"
+        line: "PasswordAuthentication no"
+        search_string: "PasswordAuthentication yes"
+        state: present
+    - name: Change default ssh port to {{ new_ssh_port }}
+      become: yes
+      ansible.builtin.lineinfile:
+        path: "/etc/ssh/sshd_config"
+        line: "Port {{new_ssh_port}}"
+        search_string: "Port 22"
+        state: present
+    - name: Reload ssh service
+      become: yes
+      ansible.builtin.service:
+        name: ssh
+        state: reloaded
+
+- name: Raspberry secondary playbook
+  hosts: raspberry
+  roles:
+    - role: gantsign.antigen
+      users:
+        - username: "{{ new_user }}"
+          antigen_libraries:
+            - name: oh-my-zsh
+          antigen_theme:
+            name: "gnzh"
+          antigen_bundles:
+            - name: git
+            - name: pip
+            - name: command-not-found
+            - name: zsh-syntax-highlighting # `name` is required (any valid file name will do so long as it's unique for the bundles)
+              url: zsh-users/zsh-syntax-highlighting
+
+- name: Raspberry finish playbook
+  hosts: raspberry
+  tasks:
+    - name: Set static ip
+      become: yes
+      ansible.builtin.lineinfile:
+        path: "/etc/dhcpcd.conf"
+        line: "{{ item }}"
+        state: present
+      with_items:
+        - "interface wlan0"
+        - "static ip_address={{ new_static_ip }}"
+        - "static routers={{ new_static_router }}"
+        - "static domain_name_servers={{ new_static_dns }}"
+
+- name: Finish and reboot raspberry
+  hosts: raspberry
+  become: yes
+  remote_user: "{{ansible_user}}"
+  tasks:
+    - name: Delete default pi user
+      ansible.builtin.user:
+        name: pi
+        state: absent
+        force: true
+        remove: yes
+    - name: Unconditionally reboot the machine with all defaults
+      become: yes
+      reboot:

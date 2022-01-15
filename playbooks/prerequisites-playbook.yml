@@ -1,0 +1,36 @@
+---
+- name: Prepare the Control Node and the Raspberrypi for Ansible
+  hosts: 127.0.0.1
+  connection: local
+  vars:
+    raspberry_default_ssh_port: 22
+    raspberry_default_ssh_user: pi
+    raspberry_default_ssh_key_name: raspberrypi.local
+  tasks:
+    
+    - name: Remove known hosts
+      ansible.builtin.lineinfile:
+        path: ~/.ssh/known_hosts
+        regexp: "raspberrypi"
+        state: absent
+    - name: Generate SSH key "{{ssh_key_filename}}"
+      openssh_keypair:
+        path: "~/.ssh/{{raspberry_default_ssh_key_name}}"
+        type: rsa
+        size: 4096
+        state: present
+        force: no
+    - name: Send control node ssh publick key to raspberry
+      ansible.builtin.command:
+        argv:
+          - "scp"
+          - "-P {{raspberry_default_ssh_port}}"
+          - "~/.ssh/{{raspberry_default_ssh_key_name}}.pub"
+          - "{{raspberry_default_ssh_user}}@raspberrypi.local:/home/{{raspberry_default_ssh_user}}/"
+    - name: Add public key to the allow keys in the raspberry
+      ansible.builtin.command:
+        argv:
+          - "ssh"
+          - "{{raspberry_default_ssh_user}}@raspberrypi.local"
+          - "-p {{raspberry_default_ssh_port}}" 
+          - "mkdir /home/{{raspberry_default_ssh_user}}/.ssh ; cat /home/{{raspberry_default_ssh_user}}/{{raspberry_default_ssh_key_name}}.pub >> /home/{{raspberry_default_ssh_user}}/.ssh/authorized_keys"
