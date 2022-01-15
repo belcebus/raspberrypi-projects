@@ -1,6 +1,6 @@
 # Playbooks
 
- ## Prerrequisitos
+ ## Prerrequisitos
 
 1.- Copiar el fichero ssh a la imagen para que active el servidor ssh en el primer arranque con los valores por defecto.
 

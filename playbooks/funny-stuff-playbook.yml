@@ -1,0 +1,16 @@
+---
+- name: Raspberry funny stuff playbook
+  hosts: raspberry
+  vars:
+  tasks:
+    - name: install pigpio and its daemon for using GPIO
+      become: yes
+      ansible.builtin.apt:
+        pkg:
+          - pigpio
+    - name: enable pigpiod to start on boot
+      become: yes
+      ansible.builtin.service:
+        name: pigpiod
+        enabled: true
+        state: restarted

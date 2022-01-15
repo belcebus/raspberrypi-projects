@@ -39,6 +39,14 @@ The playbook to change all the default configurations to avoid security problems
 * Remove default `pi` user.
 * Configure an static ip
 
-It could be executed wit the following command:
+It could be executed with the following command:
 
     ansible-playbook playbooks/raspberry-playbook.yml -i hosts.yml --vault-password-file=passwords/vault-pass-file
+
+### `funny-stuff-playbook.yml`
+
+Extra things to _play_ with the Raspberrypi
+
+It could be executed with the following command:
+
+    ansible-playbook playbooks/funny-stuff-playbook.yml -i hosts.yml
