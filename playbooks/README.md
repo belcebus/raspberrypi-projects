@@ -265,7 +265,13 @@ Demonio para el control del GPIO como un demonio:
 	The pigpiod utility requires sudo privileges to launch the library but thereafter the
 	pipe and socket commands may be issued by normal users.
 
-En el cliente hay que exportar la variable de entorno con la dirección de la raspberrypi
+En el cliente hay que exportar la variable de entorno con la dirección de la raspberrypi o en el programa python cambiar la factoria que genera los pins:
+
+```python
+from gpiozero.pins.pigpio import PiGPIOFactory
+factory = PiGPIOFactory('192.168.1.5')
+led = LED(17, pin_factory=factory) # remote pin
+```
 
     COMMANDS
     --------

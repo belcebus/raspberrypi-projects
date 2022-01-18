@@ -47,6 +47,10 @@ It could be executed with the following command:
 
 Extra things to _play_ with the Raspberrypi
 
+* Remote GPIO and gpiod install
+* pihole unnatended installation
+
+
 It could be executed with the following command:
 
-    ansible-playbook playbooks/funny-stuff-playbook.yml -i hosts.yml
+    ansible-playbook playbooks/funny-stuff-playbook.yml -i hosts.yml --vault-password-file=passwords/vault-pass-file

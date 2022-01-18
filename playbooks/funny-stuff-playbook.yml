@@ -3,6 +3,10 @@
   hosts: raspberry
   vars:
   tasks:
+    - name: enable GPIO remote access
+      become: yes
+      ansible.builtin.command:
+        cmd: "sudo raspi-config nonint do_rgpio 0"
     - name: install pigpio and its daemon for using GPIO
       become: yes
       ansible.builtin.apt:
@@ -14,3 +18,53 @@
         name: pigpiod
         enabled: true
         state: restarted
+#    - name: check if pihole is installed
+    - name: create directory to store pihole installation script
+      ansible.builtin.file:
+        path: /home/{{ new_user }}/.pihole/
+        group: "{{ new_user }}"
+        owner: "{{ new_user }}"
+        state: directory
+    - name: download pihole install script
+      ansible.builtin.get_url:
+        dest: "/home/{{ new_user }}/.pihole/basic-install.sh"
+        group: "{{ new_user }}"
+        owner: "{{ new_user }}"
+        url: https://install.pi-hole.net
+        mode: "u+rwx"
+    - name: create directory to store pihole install configuration
+      become: yes
+      ansible.builtin.file:
+        path: /etc/pihole/
+        state: directory
+    - name: create /etc/pihole/setupVars.conf file for pihole installation
+      become: yes
+      ansible.builtin.copy:
+        src: "{{playbook_dir}}/files/setupVars.conf"
+        dest: "/etc/pihole/setupVars.conf"
+    - name: prepare setupVars.conf
+      become: yes
+      ansible.builtin.lineinfile:
+        path: "/etc/pihole/setupVars.conf"
+        line: "{{item.value}}"
+        regexp: "{{item.key}}"
+        state: present
+      with_items:
+        - {key: "IPV4_ADDRESS", value: "IPV4_ADDRESS={{new_static_ip}}"}
+        - {key: "PIHOLE_INTERFACE", value: "PIHOLE_INTERFACE={{pihole_interface}}"}
+
+    - name: install pihole
+      become: yes
+      ansible.builtin.command:
+        argv:
+          - "/home/{{ new_user }}/.pihole/basic-install.sh"
+          - "--unattended"
+
+    - name: change pihole default password
+      become: yes
+      ansible.builtin.command:
+        argv:
+          - "pihole"
+          - "-a"
+          - "-p"
+          - "{{new_user_pass}}"
