@@ -244,13 +244,6 @@ Para la configuración de la red:
 https://www.raspberrypi.com/documentation/computers/configuration.html#wireless-networking-command-line
 
 
-En la raspberry hay que configurar el acceso remoto a GPIO:
-
-    COMMAND
-    ------
-    sudo raspi-config
-        3 Interface Options
-        I8 Remote GPIO
 
 Demonio para el control del GPIO como un demonio:
 
