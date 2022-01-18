@@ -18,13 +18,22 @@
         name: pigpiod
         enabled: true
         state: restarted
-#    - name: check if pihole is installed
+    - name: check if pihole is already installed
+      ansible.builtin.command:
+        argv:
+          - "pihole"
+          - "-v"
+      ignore_errors: true
+      register: pihole_version_command
+
     - name: create directory to store pihole installation script
       ansible.builtin.file:
         path: /home/{{ new_user }}/.pihole/
         group: "{{ new_user }}"
         owner: "{{ new_user }}"
         state: directory
+      when: pihole_version_command.failed == true
+
     - name: download pihole install script
       ansible.builtin.get_url:
         dest: "/home/{{ new_user }}/.pihole/basic-install.sh"
@@ -32,16 +41,22 @@
         owner: "{{ new_user }}"
         url: https://install.pi-hole.net
         mode: "u+rwx"
+      when: pihole_version_command.failed == true
+
     - name: create directory to store pihole install configuration
       become: yes
       ansible.builtin.file:
         path: /etc/pihole/
         state: directory
+      when: pihole_version_command.failed == true
+
     - name: create /etc/pihole/setupVars.conf file for pihole installation
       become: yes
       ansible.builtin.copy:
         src: "{{playbook_dir}}/files/setupVars.conf"
         dest: "/etc/pihole/setupVars.conf"
+      when: pihole_version_command.failed == true
+
     - name: prepare setupVars.conf
       become: yes
       ansible.builtin.lineinfile:
@@ -52,6 +67,7 @@
       with_items:
         - {key: "IPV4_ADDRESS", value: "IPV4_ADDRESS={{new_static_ip}}"}
         - {key: "PIHOLE_INTERFACE", value: "PIHOLE_INTERFACE={{pihole_interface}}"}
+      when: pihole_version_command.failed == true
 
     - name: install pihole
       become: yes
@@ -59,6 +75,7 @@
         argv:
           - "/home/{{ new_user }}/.pihole/basic-install.sh"
           - "--unattended"
+      when: pihole_version_command.failed == true
 
     - name: change pihole default password
       become: yes
@@ -68,3 +85,4 @@
           - "-a"
           - "-p"
           - "{{new_user_pass}}"
+      when: pihole_version_command.failed == true
