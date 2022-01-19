@@ -236,7 +236,7 @@ Host raspberrypi.local
 	HostName raspberrypi.local
 	Port 2222
 	IdentityFile ~/.ssh/raspberrypi.local
-	User dhernandez
+	User davidh
 
 
 Para la configuración de la red:

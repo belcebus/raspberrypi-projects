@@ -17,6 +17,12 @@
       apt:
         name: "*"
         state: latest
+    - name: Upgrade
+      become: yes
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400 #One day
     - name: Install git and pip
       become: yes
       ansible.builtin.apt:
