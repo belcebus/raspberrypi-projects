@@ -94,3 +94,14 @@
             6131656338643365360a666364303863346237333361633565303339643836393035323361303637
             3631
       when: pihole_version_command.failed == true
+    
+    - name: configure git user email
+      git_config:
+        name: "user.email"
+        value: "{{git_user_email}}"
+        scope: "global"
+    - name: configure git user name
+      git_config:
+        name: "user.name"
+        value: "{{git_user_name}}"
+        scope: "global"
