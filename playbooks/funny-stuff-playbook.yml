@@ -113,5 +113,5 @@
     - name: set gpg prompt terminal
       ansible.builtin.lineinfile:
         path: "/home/{{new_user}}/.zshrc"
-        line: "GPG_TTY=$(tty)"
+        line: "export GPG_TTY=$(tty)"
         state: present
