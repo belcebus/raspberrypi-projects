@@ -54,7 +54,7 @@
             - "mkdir /home/{{raspberry_default_ssh_user}}/.ssh ; cat /home/{{raspberry_default_ssh_user}}/{{raspberry_default_ssh_key_name}}.pub >> /home/{{raspberry_default_ssh_user}}/.ssh/authorized_keys"
 ```
 
- ## Preparar la instalación
+ ## Preparar la instalación
 
 6.- Update system
     
