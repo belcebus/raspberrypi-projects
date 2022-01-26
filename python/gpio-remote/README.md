@@ -1,4 +1,6 @@
-# gpiozero (GPIO Zero)
+# gpio-remote
+
+## gpiozero (GPIO Zero)
 
     man remote-gpio
 
