@@ -105,3 +105,13 @@
         name: "user.name"
         value: "{{git_user_name}}"
         scope: "global"
+    - name: always sign the commits
+      git_config:
+        name: "commit.gpgsign"
+        value: "true"
+        scope: "global"
+    - name: set gpg prompt terminal
+      ansible.builtin.lineinfile:
+        path: "/home/{{new_user}}/.zshrc"
+        line: "GPG_TTY=$(tty)"
+        state: present
