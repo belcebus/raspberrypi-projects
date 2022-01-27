@@ -19,6 +19,7 @@ def loop():
         if valor <= 0 or valor >=10:
             decremento = -1 * decremento
         bar.value=-valor/10
+        sleep(0.01)
 
 if __name__ == "__main__": 
     try:
