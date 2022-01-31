@@ -41,11 +41,7 @@ def loop():
             indice = indice + 1 
             sleep(frec)
 
-        indice=9
-        while indice >= 0:
-            leds[indice].pulse(fade_in_time=fade_in,fade_out_time=fade_out,n=1)
-            indice = indice - 1 
-            sleep(frec)
+        leds.reverse()
         
 
 if __name__ == "__main__":
