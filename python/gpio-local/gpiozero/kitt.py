@@ -5,17 +5,19 @@ from time import sleep
 
 factory = PiGPIOFactory()
 
+frequency = 80
+
 leds = [
-        PWMLED("GPIO17",initial_value=False,pin_factory=factory,frequency=50,active_high=False),
-        PWMLED("GPIO18",initial_value=False,pin_factory=factory,frequency=50,active_high=False),
-        PWMLED("GPIO27",initial_value=False,pin_factory=factory,frequency=50,active_high=False),
-        PWMLED("GPIO22",initial_value=False,pin_factory=factory,frequency=50,active_high=False),
-        PWMLED("GPIO23",initial_value=False,pin_factory=factory,frequency=50,active_high=False),
-        PWMLED("GPIO24",initial_value=False,pin_factory=factory,frequency=50,active_high=False),
-        PWMLED("GPIO25",initial_value=False,pin_factory=factory,frequency=50,active_high=False),
-        PWMLED("GPIO05",initial_value=False,pin_factory=factory,frequency=50,active_high=False),
-        PWMLED("GPIO06",initial_value=False,pin_factory=factory,frequency=50,active_high=False),
-        PWMLED("GPIO12",initial_value=False,pin_factory=factory,frequency=50,active_high=False)
+        PWMLED("GPIO17",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False),
+        PWMLED("GPIO18",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False),
+        PWMLED("GPIO27",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False),
+        PWMLED("GPIO22",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False),
+        PWMLED("GPIO23",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False),
+        PWMLED("GPIO24",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False),
+        PWMLED("GPIO25",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False),
+        PWMLED("GPIO05",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False),
+        PWMLED("GPIO06",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False),
+        PWMLED("GPIO12",initial_value=False,pin_factory=factory,frequency=frequency,active_high=False)
 ]
 
 def setup():
@@ -28,9 +30,9 @@ def destroy():
 
 def loop():
 
-    fade_in=0.08
-    fade_out=0.18
-    frec = 0.09
+    fade_in=0.25
+    fade_out=fade_in * 1.75
+    frec = fade_in / 2
 
     while True:
 
