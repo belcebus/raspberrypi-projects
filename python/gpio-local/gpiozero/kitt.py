@@ -44,7 +44,6 @@ def loop():
             sleep(frec)
 
         leds.reverse()
-        
 
 if __name__ == "__main__":
     try:
