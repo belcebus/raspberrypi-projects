@@ -2,9 +2,9 @@
 
  ## Prerrequisitos
 
-1.- Copiar el fichero ssh a la imagen para que active el servidor ssh en el primer arranque con los valores por defecto.
+1.- Copiar el fichero 'ssh' a la imagen para que active el servidor ssh en el primer arranque con los valores por defecto.
 
-2.- Copiar el fichero wpa_supplicant.conf a la imagen con los datos de la red wifi para conectarse.
+2.- Copiar el fichero 'wpa_supplicant.conf' a la imagen con los datos de la red wifi para conectarse.
     
     ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
     update_config=1

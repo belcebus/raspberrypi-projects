@@ -49,7 +49,7 @@ Extra things to _play_ with the Raspberrypi
 
 * Remote GPIO and gpiod install
 * pihole unnatended installation
-
+* prepare git with signed commits
 
 It could be executed with the following command:
 
