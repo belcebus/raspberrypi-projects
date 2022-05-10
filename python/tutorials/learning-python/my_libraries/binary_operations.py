@@ -1,13 +1,9 @@
 
-"""
-    Imprime un binarios de 8 bits
-"""
+""" Imprime un binarios de 8 bits """
 def print_binary_representation (number):
     print(f'{num_to_binary(number):0>8}')
 
-"""
-    retorna una cadena binaria
-"""
+""" Retorna una cadena binaria """
 def num_to_binary(number):
     cadena_binaria = ""
     if number == 0:

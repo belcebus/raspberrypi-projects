@@ -1,5 +1,6 @@
 import unittest
 import numero_primo as np
+import pytest
 
 class TestNumeroPrimo(unittest.TestCase):
 
@@ -19,4 +20,7 @@ class TestNumeroPrimo(unittest.TestCase):
         self.assertEqual(np.is_primo(10), False)
         self.assertEqual(np.is_primo(11), True)
         
+    def test_exception_raised_when_negative_value(self):
+        with pytest.raises(ValueError):
+            np.is_primo(-1)
         

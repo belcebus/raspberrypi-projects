@@ -1,4 +1,4 @@
-from my_libraries import binary_operations as bo
+import binary_operations as bo
 
 def test_binary_0():
    assert bo.num_to_binary(0) == "0"
