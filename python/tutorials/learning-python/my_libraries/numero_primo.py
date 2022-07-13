@@ -1,12 +1,10 @@
-
-from operator import truediv
-
+from math import sqrt
 
 def is_primo(number):
     if number <= 0:
         raise ValueError("{} must be integer greater than 0".format(number))
     else:
-        for n in range(2, number-1):
+        for n in range(2, int(sqrt(number))+1):
             if number % n == 0:
                 return False
         return True
