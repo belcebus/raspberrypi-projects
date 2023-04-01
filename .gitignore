@@ -1,3 +1,4 @@
 passwords
 .venv
 __pycache__
+.idea
