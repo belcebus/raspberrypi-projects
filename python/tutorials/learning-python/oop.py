@@ -131,3 +131,46 @@ for car in cars:
 
     
 
+
+
+class Book:
+
+    def __init__(self, title, author, pages):
+        self.title = title
+        self.author = author
+        self.pages = pages
+
+class EBook(Book):
+
+    def __init__(self, title, author, pages, format):
+        super().__init__(title, author, pages)
+        self.format = format
+
+eBook = EBook('Learning Python', 'Mark Lutz', 500, 'pdf')
+
+print(eBook.title)
+print(eBook.author)
+print(eBook.pages)
+print(eBook.format)
+print(eBook.__dict__)
+
+########################
+
+class Shape:
+
+    geometric_type = 'Generic Shape'
+
+    def area(self):
+        raise NotImplementedError
+    def geometric_type(self):
+        return self.geometric_type
+
+class Plotter:
+
+    def plot(self, ratio, topleft):
+        print('Plotting at {}, ratio {}.'.format(topleft, ratio))
+    
+class Polygon(Shape, Plotter):
+
+    geometric_type = 'Polygon'
+

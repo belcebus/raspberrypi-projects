@@ -9,3 +9,5 @@ requests==2.28.0
 urllib3==1.26.9
 pytest==7.1.2
 pyyaml
+gpiozero
+pigpio
