@@ -7,5 +7,9 @@ theme:
     accent: red
   logo: images/raspberry-pi-logo.png
     
-  
-
+nav:
+  - Home: index.md
+  - Python:
+    - Local: python/gpio-local/gpio-local-index.md
+    - Remote: python/gpio-remote/gpio-remote-index.md
+  - Ansible: ansible/ansible-index.md
