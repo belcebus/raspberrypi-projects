@@ -11,3 +11,5 @@ pytest==7.1.2
 pyyaml
 gpiozero
 pigpio
+mkdocs
+mkdocs-material
