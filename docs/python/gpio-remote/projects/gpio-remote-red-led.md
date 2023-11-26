@@ -2,4 +2,10 @@
 
 ## Diagram
 
-![red-led](gpio-remote-red-led.drawio)
+![red-led](../../../diagrams/gpio-remote-red-led.drawio){: .center}
+
+## Code
+
+``` title="red-led.py"
+--8<-- "src/python/gpio-remote/gpiozero/red-led.py"
+```

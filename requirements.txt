@@ -4,6 +4,8 @@
 
 gpiozero
 pigpio
+GPIO
+# RPi.GPIO
 
 ###############################################
 # mkdocs and documentation section

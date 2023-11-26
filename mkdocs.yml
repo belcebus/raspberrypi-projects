@@ -1,11 +1,29 @@
 site_name: Raspberry Pi Projects
+site_description: Raspberry Pi Projects
+site_author: belcebus
+site_url: https://belcebus.github.io/raspberrypi-projects/
+repo_url: https://github.com/belcebus/raspberrypi-projects
+
 theme:
+  favicon: images/raspberry-pi-logo.png
+  features:
+    - content.code.copy        # Copy code blocks to clipboard
+    - content.code.annotate    # Annotate code blocks
+  logo: images/raspberry-pi-logo.png
   name: material
   palette: 
     scheme: default
     primary: amber
     accent: red
-  logo: images/raspberry-pi-logo.png
+  
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
 
 plugins:
   - drawio_file
