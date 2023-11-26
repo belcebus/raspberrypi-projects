@@ -13,3 +13,4 @@ gpiozero
 pigpio
 mkdocs
 mkdocs-material
+mkdocs-drawio-file

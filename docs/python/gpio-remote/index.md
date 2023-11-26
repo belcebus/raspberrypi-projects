@@ -43,3 +43,8 @@ Raspberrypi:
 * Enable the __pigpiod__ (pigpio daemon)
 * (optional) gpiozero 1.6.2 
 * (Optional) RPi.GPIO 0.7.0
+
+### Projects
+
+* [Red led](projects/gpio-remote-red-led.md)
+

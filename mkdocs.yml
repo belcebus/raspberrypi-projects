@@ -6,10 +6,13 @@ theme:
     primary: amber
     accent: red
   logo: images/raspberry-pi-logo.png
-    
+
+plugins:
+  - drawio_file
+
 nav:
   - Home: index.md
   - Python:
-    - Local: python/gpio-local/gpio-local-index.md
-    - Remote: python/gpio-remote/gpio-remote-index.md
+    - Local: python/gpio-local/index.md
+    - Remote: python/gpio-remote/index.md
   - Ansible: ansible/ansible-index.md
