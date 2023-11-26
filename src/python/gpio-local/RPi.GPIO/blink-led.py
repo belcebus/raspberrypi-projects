@@ -18,10 +18,10 @@ def loop():
     while True: 
         print(">>>>> led on")
         GPIO.output(ledPin,GPIO.HIGH)
-        sleep(1)
+        sleep(0.025)
         print("<<<<< led off")
         GPIO.output(ledPin,GPIO.LOW)
-        sleep(1)
+        sleep(0.025)
 
 def destroy():
     print("Exiting...")
