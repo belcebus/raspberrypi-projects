@@ -1,0 +1,14 @@
+###############################################
+# gpiozero and pigpio section for GPIO
+###############################################
+
+gpiozero
+pigpio
+
+###############################################
+# mkdocs and documentation section
+###############################################
+
+mkdocs
+mkdocs-material
+mkdocs-drawio-file

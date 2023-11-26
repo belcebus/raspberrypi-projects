@@ -2,3 +2,5 @@ passwords
 .venv
 __pycache__
 .idea
+.pytest_cache
+

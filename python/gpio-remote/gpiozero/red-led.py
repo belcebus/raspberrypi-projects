@@ -4,7 +4,7 @@ from time import sleep
 
 factory = PiGPIOFactory('192.168.0.172')
 
-red = LED("GPIO21",pin_factory=factory)
+red = LED("GPIO13",pin_factory=factory)
 
 def setup():
     print("Setup components")
@@ -14,10 +14,10 @@ def loop():
     while True:
         print(">>>>>>> turn on")
         red.on()
-        sleep(1)
+        sleep(0.1)
         print(">>>>>>> turn off")
         red.off()
-        sleep(1)
+        sleep(0.1)
 
 def destroy():
     print("Keyboard interrupted, switcing off and finish")
