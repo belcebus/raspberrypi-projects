@@ -5,7 +5,7 @@
 gpiozero
 pigpio
 GPIO
-# RPi.GPIO
+# RPi.GPIO #uncomment this line if you are executing in a Raspberry Pi
 
 ###############################################
 # mkdocs and documentation section
