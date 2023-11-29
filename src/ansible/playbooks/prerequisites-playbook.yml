@@ -6,6 +6,13 @@
     raspberry_default_ssh_port: 22
     raspberry_default_ssh_user: pi
     raspberry_default_ssh_key_name: raspberrypi.local
+    default_user_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38393839636139306233613536376565616363393933333739376533326264343161633730613032
+          3038323730333334616633363034333936633733363461370a303233613066316530636232626565
+          33306666633735613135383834663437306436363065666464383962636635623732633032366164
+          3033646134343938340a316532393938386664386632393637373064313638666531326463323430
+          6164
   tasks:
     
     - name: Remove known hosts
@@ -21,15 +28,14 @@
         state: present
         force: no
     - name: Send control node ssh publick key to raspberry
-      ansible.builtin.command:
-        argv:
-          - "scp"
-          - "-P {{raspberry_default_ssh_port}}"
-          - "~/.ssh/{{raspberry_default_ssh_key_name}}.pub"
-          - "{{raspberry_default_ssh_user}}@raspberrypi.local:/home/{{raspberry_default_ssh_user}}/"
+      ansible.builtin.shell: sshpass -v -p {{default_user_password}} scp -o StrictHostKeyChecking=no -P {{raspberry_default_ssh_port}} ~/.ssh/{{raspberry_default_ssh_key_name}}.pub {{raspberry_default_ssh_user}}@raspberrypi.local:/home/{{raspberry_default_ssh_user}}/
     - name: Add public key to the allow keys in the raspberry
       ansible.builtin.command:
         argv:
+          - "sshpass" 
+          - "-v" 
+          - "-p"
+          - "{{default_user_password}}"
           - "ssh"
           - "{{raspberry_default_ssh_user}}@raspberrypi.local"
           - "-p {{raspberry_default_ssh_port}}" 
