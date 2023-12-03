@@ -1,23 +1,7 @@
 ---
 - name: Raspberry funny stuff playbook
   hosts: raspberry
-  vars:
   tasks:
-    - name: enable GPIO remote access
-      become: yes
-      ansible.builtin.command:
-        cmd: "sudo raspi-config nonint do_rgpio 0"
-    - name: install pigpio and its daemon for using GPIO
-      become: yes
-      ansible.builtin.apt:
-        pkg:
-          - pigpio
-    - name: enable pigpiod to start on boot
-      become: yes
-      ansible.builtin.service:
-        name: pigpiod
-        enabled: true
-        state: restarted
     - name: check if pihole is already installed
       ansible.builtin.command:
         argv:
@@ -28,37 +12,37 @@
 
     - name: create directory to store pihole installation script
       ansible.builtin.file:
-        path: /home/{{ new_user }}/.pihole/
-        group: "{{ new_user }}"
-        owner: "{{ new_user }}"
+        path: /home/{{ raspberry_default_ssh_user }}/.pihole/
+        group: "{{ raspberry_default_ssh_user }}"
+        owner: "{{ raspberry_default_ssh_user }}"
         state: directory
       when: pihole_version_command.failed == true
 
     - name: download pihole install script
       ansible.builtin.get_url:
-        dest: "/home/{{ new_user }}/.pihole/basic-install.sh"
-        group: "{{ new_user }}"
-        owner: "{{ new_user }}"
+        dest: "/home/{{ raspberry_default_ssh_user }}/.pihole/basic-install.sh"
+        group: "{{ raspberry_default_ssh_user }}"
+        owner: "{{ raspberry_default_ssh_user }}"
         url: https://install.pi-hole.net
         mode: "u+rwx"
       when: pihole_version_command.failed == true
 
     - name: create directory to store pihole install configuration
-      become: yes
+      become: true
       ansible.builtin.file:
         path: /etc/pihole/
         state: directory
       when: pihole_version_command.failed == true
 
     - name: create /etc/pihole/setupVars.conf file for pihole installation
-      become: yes
+      become: true
       ansible.builtin.copy:
         src: "{{playbook_dir}}/files/setupVars.conf"
         dest: "/etc/pihole/setupVars.conf"
       when: pihole_version_command.failed == true
 
     - name: prepare setupVars.conf
-      become: yes
+      become: true
       ansible.builtin.lineinfile:
         path: "/etc/pihole/setupVars.conf"
         line: "{{item.value}}"
@@ -66,19 +50,19 @@
         state: present
       with_items:
         - {key: "IPV4_ADDRESS", value: "IPV4_ADDRESS={{new_static_ip}}"}
-        - {key: "PIHOLE_INTERFACE", value: "PIHOLE_INTERFACE={{pihole_interface}}"}
+        - {key: "PIHOLE_INTERFACE", value: "PIHOLE_INTERFACE={{wlan_interface}}"}
       when: pihole_version_command.failed == true
 
     - name: install pihole
-      become: yes
+      become: true
       ansible.builtin.command:
         argv:
-          - "/home/{{ new_user }}/.pihole/basic-install.sh"
+          - "/home/{{ raspberry_default_ssh_user }}/.pihole/basic-install.sh"
           - "--unattended"
       when: pihole_version_command.failed == true
 
     - name: change pihole default password
-      become: yes
+      become: true
       ansible.builtin.command:
         argv:
           - "pihole"
@@ -86,32 +70,6 @@
           - "-p"
           - "{{new_pihole_pass}}"
       vars:
-        new_pihole_pass: !vault |
-            $ANSIBLE_VAULT;1.1;AES256
-            37363331616336633838313937316463366633663061326332336132333966373835653535653861
-            6637303830353830343538663337653761396664346438650a353133656661613030323434353661
-            62633230323564626431643538663430393631343437626433636166346337353361633731653438
-            6131656338643365360a666364303863346237333361633565303339643836393035323361303637
-            3631
+        new_pihole_pass: "{{new_pihole_pass}}"
       when: pihole_version_command.failed == true
     
-    - name: configure git user email
-      git_config:
-        name: "user.email"
-        value: "{{git_user_email}}"
-        scope: "global"
-    - name: configure git user name
-      git_config:
-        name: "user.name"
-        value: "{{git_user_name}}"
-        scope: "global"
-    - name: always sign the commits
-      git_config:
-        name: "commit.gpgsign"
-        value: "true"
-        scope: "global"
-    - name: set gpg prompt terminal
-      ansible.builtin.lineinfile:
-        path: "/home/{{new_user}}/.zshrc"
-        line: "export GPG_TTY=$(tty)"
-        state: present

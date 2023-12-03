@@ -1,20 +1,8 @@
 ---
 - name: Prepare the Control Node and the Raspberrypi for Ansible
-  hosts: 127.0.0.1
+  hosts: controlserver
   connection: local
-  vars:
-    raspberry_default_ssh_port: 22
-    raspberry_default_ssh_user: pi
-    raspberry_default_ssh_key_name: raspberrypi.local
-    default_user_password: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          38393839636139306233613536376565616363393933333739376533326264343161633730613032
-          3038323730333334616633363034333936633733363461370a303233613066316530636232626565
-          33306666633735613135383834663437306436363065666464383962636635623732633032366164
-          3033646134343938340a316532393938386664386632393637373064313638666531326463323430
-          6164
   tasks:
-    
     - name: Remove known hosts
       ansible.builtin.lineinfile:
         path: ~/.ssh/known_hosts
@@ -27,16 +15,156 @@
         size: 4096
         state: present
         force: no
-    - name: Send control node ssh publick key to raspberry
-      ansible.builtin.shell: sshpass -v -p {{default_user_password}} scp -o StrictHostKeyChecking=no -P {{raspberry_default_ssh_port}} ~/.ssh/{{raspberry_default_ssh_key_name}}.pub {{raspberry_default_ssh_user}}@raspberrypi.local:/home/{{raspberry_default_ssh_user}}/
+    - name: check if the raspberry admits ssh connections using password to authenticate
+      ansible.builtin.command:
+        argv:
+          - "sshpass"
+          - "-p"
+          - "{{ raspberry_default_ssh_user_password }}"
+          - "ssh"
+          - "-o StrictHostKeyChecking=no"
+          - "{{ raspberry_default_ssh_user }}@raspberrypi.local"
+          - "-p {{ raspberry_default_ssh_port }}"
+          - "echo 'Connection established'"
+      register: ssh_usr_and_pass_connection_failed
+      ignore_errors: true
+
+    - name: Send control node ssh public key to raspberry
+      ansible.builtin.shell: sshpass -v -p {{raspberry_default_ssh_user_password}} scp -o StrictHostKeyChecking=no -P {{raspberry_default_ssh_port}} ~/.ssh/{{raspberry_default_ssh_key_name}}.pub {{raspberry_default_ssh_user}}@raspberrypi.local:/home/{{raspberry_default_ssh_user}}/
+      when: ssh_usr_and_pass_connection_failed.rc == 0 
+
     - name: Add public key to the allow keys in the raspberry
       ansible.builtin.command:
         argv:
-          - "sshpass" 
+          - "sshpass"
           - "-v" 
           - "-p"
-          - "{{default_user_password}}"
+          - "{{raspberry_default_ssh_user_password}}"
           - "ssh"
+          - "-o StrictHostKeyChecking=no"
           - "{{raspberry_default_ssh_user}}@raspberrypi.local"
           - "-p {{raspberry_default_ssh_port}}" 
           - "mkdir /home/{{raspberry_default_ssh_user}}/.ssh ; cat /home/{{raspberry_default_ssh_user}}/{{raspberry_default_ssh_key_name}}.pub >> /home/{{raspberry_default_ssh_user}}/.ssh/authorized_keys"
+      when: ssh_usr_and_pass_connection_failed.rc == 0
+
+- name: Raspberry network configuration playbook
+  hosts: raspberry
+  tasks:
+    - name: Set static ip using network manager client
+      become: true
+      ansible.builtin.nmcli:
+        ifname: "{{ wlan_interface }}"
+        conn_name: "{{ ssid_name }}"
+        type: "wifi"
+        ssid: "{{ ssid_name }}"
+        ip4: "{{ new_static_ip }}"
+        gw4: "{{ new_static_router }}"
+        dns4: "{{ new_static_dns }}"
+        state: present
+
+- name: Raspberry install utilities playbook
+  hosts: raspberry
+  tasks:
+    - name: Run the equivalent of "apt-get update" as a separate step
+      become: true
+      apt:
+        update_cache: yes
+    - name: Update all packages to their latest version
+      become: true
+      apt:
+        name: "*"
+        state: latest
+    - name: Upgrade
+      become: true
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400 #One day
+    - name: Install apps
+      become: true
+      ansible.builtin.apt:
+        pkg:
+          - git
+          - gh
+          - pip
+          - pigpio
+
+- name: Install oh-my-zsh playbook
+  hosts: raspberry
+  roles:
+    - role: gantsign.antigen
+      users:
+        - username: "{{ raspberry_default_ssh_user }}"
+          antigen_libraries:
+            - name: oh-my-zsh
+          antigen_theme:
+            name: "gnzh"
+          antigen_bundles:
+            - name: git
+            - name: pip
+            - name: command-not-found
+            - name: zsh-syntax-highlighting # `name` is required (any valid file name will do so long as it's unique for the bundles)
+              url: zsh-users/zsh-syntax-highlighting
+
+- name: Configure git and gh playbook
+  hosts: raspberry
+  tasks:
+    - name: configure git user email
+      git_config:
+        name: "user.email"
+        value: "{{git_user_email}}"
+        scope: "global"
+    - name: configure git user name
+      git_config:
+        name: "user.name"
+        value: "{{git_user_name}}"
+        scope: "global"
+    - name: always sign the commits
+      git_config:
+        name: "commit.gpgsign"
+        value: "true"
+        scope: "global"
+    - name: set gpg prompt terminal
+      ansible.builtin.lineinfile:
+        path: "/home/{{raspberry_default_ssh_user}}/.zshrc"
+        line: "export GPG_TTY=$(tty)"
+        state: present
+    - name: write gh token to a temporary file
+      ansible.builtin.copy:
+        content: "{{github_token}}"
+        dest: "/tmp/gh_token"
+    - name: gh auth login with token
+      ansible.builtin.shell: gh auth login --with-token < /tmp/gh_token
+    - name: remove gh token temporary file
+      ansible.builtin.file:
+        path: "/tmp/gh_token"
+        state: absent
+
+- name: Finish network configuration playbook
+  hosts: raspberry
+  tasks:
+    - name: enable GPIO remote access
+      become: true
+      ansible.builtin.command:
+        cmd: "sudo raspi-config nonint do_rgpio 0"
+    - name: enable pigpiod to start on boot
+      become: true
+      ansible.builtin.service:
+        name: pigpiod
+        enabled: true
+        state: restarted
+    - name: Disable password access via ssh
+      become: true
+      ansible.builtin.lineinfile:
+        path: "/etc/ssh/sshd_config"
+        line: "PasswordAuthentication no"
+        search_string: "PasswordAuthentication yes"
+        state: present
+    - name: Reload ssh service
+      become: true
+      ansible.builtin.service:
+        name: ssh
+        state: reloaded
+    - name: Unconditionally reboot the machine with all defaults
+      become: true
+      reboot:

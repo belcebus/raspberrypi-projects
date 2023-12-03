@@ -2,23 +2,11 @@
 
  ## Prerrequisitos
 
-1.- Copiar el fichero 'ssh' a la imagen para que active el servidor ssh en el primer arranque con los valores por defecto.
+1.- Crear una imagen en una tarjeta de memoria usando el programa Raspberry Pi Imager. Esta imagen debe estar configurada el usuario por defecto de raspberry `pi` y su contraseña por defecto `raspberrypi`. También debe estar configurada la red wifi. Se ddeberá establecer el nombre del servidor como `raspberrypi.local` para que sea accesible mediante el servicio de Multicast DNS. Finalmente activar el servicio ssh con autenticación por contraseña.
 
-2.- Copiar el fichero 'wpa_supplicant.conf' a la imagen con los datos de la red wifi para conectarse.
-    
-    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-    update_config=1
-    country=ES
-    
-    network={
-     ssid="SSID"
-     psk="TU-CONTRASEÑA-DE-RED"
-     priority=1
-    }
+2.- Arrancar la imagen que será accesible mediante el dns: raspberrypi.local
 
-3.- Arrancar la imagen que será accesible mediante el dns: raspberrypi.local
-
-4.- Generar un par de claves ssh con el comando ssh-keygen y de nombre raspberrypi.local
+3.- Generar un par de claves ssh con el comando ssh-keygen y de nombre raspberrypi.local
 
 ```yaml
     - name: Remove known hosts
@@ -35,23 +23,22 @@
     state: present
     force: no
 ```
-5.- Copiar la clave pública a las raspberry y añadirla a la lista de claves autorizadas
+4.- Copiar la clave pública a las raspberry y añadirla a la lista de claves autorizadas. Este proceso se realiza mediante el uso de sshpass para enviar la contraseña al comando scp y ssh. Justo debajo se muestra el código necesario para realizar esta tarea en dos formatos diferentes: mediante el uso de los módulos de ansible y mediante el uso de comandos de shell.
 
 ```yaml
     - name: Send control node ssh publick key to raspberry
-        ansible.builtin.command:
-        argv:
-            - "scp"
-            - "-P {{raspberry_default_ssh_port}}"
-            - "~/.ssh/{{raspberry_default_ssh_key_name}}.pub"
-            - "{{raspberry_default_ssh_user}}@raspberrypi.local:/home/{{raspberry_default_ssh_user}}/"
+      ansible.builtin.shell: sshpass -v -p {{raspberry_default_user_password}} scp -o StrictHostKeyChecking=no -P {{raspberry_default_ssh_port}} ~/.ssh/{{raspberry_default_ssh_key_name}}.pub {{raspberry_default_ssh_user}}@raspberrypi.local:/home/{{raspberry_default_ssh_user}}/
     - name: Add public key to the allow keys in the raspberry
-        ansible.builtin.command:
+      ansible.builtin.command:
         argv:
-            - "ssh"
-            - "{{raspberry_default_ssh_user}}@raspberrypi.local"
-            - "-p {{raspberry_default_ssh_port}}" 
-            - "mkdir /home/{{raspberry_default_ssh_user}}/.ssh ; cat /home/{{raspberry_default_ssh_user}}/{{raspberry_default_ssh_key_name}}.pub >> /home/{{raspberry_default_ssh_user}}/.ssh/authorized_keys"
+          - "sshpass" 
+          - "-v" 
+          - "-p"
+          - "{{raspberry_default_user_password}}"
+          - "ssh"
+          - "{{raspberry_default_ssh_user}}@raspberrypi.local"
+          - "-p {{raspberry_default_ssh_port}}" 
+          - "mkdir /home/{{raspberry_default_ssh_user}}/.ssh ; cat /home/{{raspberry_default_ssh_user}}/{{raspberry_default_ssh_key_name}}.pub >> /home/{{raspberry_default_ssh_user}}/.ssh/authorized_keys"
 ```
 
  ## Preparar la instalación
@@ -62,11 +49,11 @@
 
 ```yaml
     - name: Run the equivalent of "apt-get update" as a separate step
-      become: yes
+      become: true
       apt:
         update_cache: yes
     - name: Update all packages to their latest version
-      become: yes
+      become: true
       apt:
         name: "*"
         state: latest
@@ -78,7 +65,7 @@
 
 ```yaml
     - name: Install git and pip
-      become: yes
+      become: true
       ansible.builtin.apt:
         pkg:
           - git
@@ -91,7 +78,7 @@
 
 ```yaml
     - name: Create new user <davidh>
-      become: yes
+      become: true
       ansible.builtin.user:
         append: yes
         comment: "Created with ansible"
@@ -108,7 +95,7 @@ Notas: La contraseña debe pasarse codificada en el comando de ansible: https://
 
 ```yaml
     - name: Allow new user to use ssh
-      become: yes
+      become: true
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
         line: "AllowUsers {{ ansible_user }}"
@@ -126,7 +113,7 @@ Leer el contenido de la clave pública generada en el playbook de prerrequisitos
 
 ```yaml
     - name: Add control machine public key to authorized_key
-      become: yes
+      become: true
       remote_user: "{{ ansible_user }}"
       ansible.builtin.lineinfile: 
         path: "/home/{{ansible_user}}/.ssh/authorized_keys"
@@ -144,7 +131,7 @@ Leer el contenido de la clave pública generada en el playbook de prerrequisitos
 
 ```yaml
     - name: Disable password access via ssh
-      become: yes
+      become: true
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
         line: "PasswordAuthentication no"
@@ -157,7 +144,7 @@ Leer el contenido de la clave pública generada en el playbook de prerrequisitos
 
 ```yaml
     - name: Change default ssh port to {{ new_ssh_port }}
-      become: yes
+      become: true
       ansible.builtin.lineinfile:
         path: "/etc/ssh/sshd_config"
         line: "Port {{new_ssh_port}}"
@@ -170,7 +157,7 @@ Leer el contenido de la clave pública generada en el playbook de prerrequisitos
 
 ```yaml
     - name: Delete default pi user
-      become: yes
+      become: true
       ansible.builtin.user:
         name: pi
         state: absent
@@ -181,7 +168,7 @@ Leer el contenido de la clave pública generada en el playbook de prerrequisitos
 
 ```yaml
     - name: Reload ssh service
-      become: yes
+      become: true
       ansible.builtin.service:
         name: ssh
         state: reloaded
@@ -191,7 +178,7 @@ Leer el contenido de la clave pública generada en el playbook de prerrequisitos
 
 ```yaml
     - name: Set static ip
-      become: yes
+      become: true
       ansible.builtin.lineinfile:
         path: "/etc/dhcpcd.conf"
         line: "{{ item }}"
@@ -207,7 +194,7 @@ Leer el contenido de la clave pública generada en el playbook de prerrequisitos
 
 ```yaml
     - name: Unconditionally reboot the machine with all defaults
-      become: yes
+      become: true
       reboot:
 ```
 
