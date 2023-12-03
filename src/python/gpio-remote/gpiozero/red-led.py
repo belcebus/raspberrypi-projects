@@ -2,7 +2,7 @@ from gpiozero import LED
 from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 
-factory = PiGPIOFactory('192.168.0.172')
+factory = PiGPIOFactory('raspberrypi.local')
 
 red = LED("GPIO13",pin_factory=factory)
 
@@ -14,10 +14,10 @@ def loop():
     while True:
         print(">>>>>>> turn on")
         red.on()
-        sleep(0.1)
+        sleep(0.5)
         print(">>>>>>> turn off")
         red.off()
-        sleep(0.1)
+        sleep(0.5)
 
 def destroy():
     print("Keyboard interrupted, switcing off and finish")

@@ -22,34 +22,28 @@ Only one host is defined in this file: `raspberrypi`. We can leverage into the [
 
 The playbook to prepare the control node and the raspberry to use Ansible. It creates the ssh keys and send the public one to the raspberry and add it to the `authorized_keys` file.
 
+* Add the control node public key becuase it disables the password access through ssh.
+* Update the system and install `git`, `pip` and `oh-my-zsh`.
+* Configure an static ip
+* Configure git
+* Remote GPIO and gpiod install
+* Prepare git with signed commits
+
+This playbook uses sshpass program to send the password to the raspberry. It is not installed by the default in mac, so it is necessary to install it with brew:
+
+    brew install hudochenkov/sshpass/sshpass
+
 It could be executed with the following command:
 
-    ansible-playbook playbooks/prerequisites-playbook.yml -i hosts.yml
+    ansible-playbook playbooks/prerequisites-playbook.yml -i hosts.yml --vault-password-file=passwords/vault-pass-file
 
 It use de default raspberrypi configuration so it access using password.
-
-### `raspberry-playbook.yml`
-
-The playbook to change all the default configurations to avoid security problems to configure it the way I like, that is:
-
-* Change ssh default port to another defined in the inventory file vars section.
-* Create a new sudoer user
-* Add the control node public key created in the prerrequisites playbook becuase it disables the password access through ssh.
-* Update the system and install `git`, `pip` and `oh-my-zsh`.
-* Remove default `pi` user.
-* Configure an static ip
-
-It could be executed with the following command:
-
-    ansible-playbook playbooks/raspberry-playbook.yml -i hosts.yml --vault-password-file=passwords/vault-pass-file
 
 ### `funny-stuff-playbook.yml`
 
 Extra things to _play_ with the Raspberrypi
 
-* Remote GPIO and gpiod install
 * pihole unnatended installation
-* prepare git with signed commits
 
 It could be executed with the following command:
 
@@ -57,4 +51,15 @@ It could be executed with the following command:
 
 ## Ansible Vault codification
 
-encrypt_string --vault-password-file ./passwords/vault-pass-file 'YOUR_NEW_PASSORD' --name ansible_var_name 
+    ansible-vault encrypt_string --vault-password-file ./passwords/vault-pass-file 'YOUR_NEW_PASSORD' --name ansible_var_name 
+
+## Ansible Vault decodification
+
+    export cypheredsecret='$ANSIBLE_VAULT;1.1;AES256
+    66336438653312345630373464663933343939393036613161316530323435666634663932346637
+    6432393535651212123734623465663430656531666332660a383536616165636333626464663934
+    63336236633861366437356534616636675335613036306634653364383137663530646331393439
+    3361656262613638660a623136376264653564353035638768636132386231373633363538323233
+    3233'
+    
+    echo $cypher | ansible-vault decrypt --vault-password-file ./passwords/vault-pass-file     
